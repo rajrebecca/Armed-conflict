@@ -25,7 +25,10 @@ data2 <- subset %>%
                 values_to = "MatMor") %>% #Change the 'count' to 'MatMor'
   mutate(Year = as.numeric(Year)) #store 'Year' as numeric
 
-write.csv(data2, here("data", "cleandata.csv"), row.names = FALSE)
+write.csv(data2, here("data", "clean_maternal_data.csv"), row.names = FALSE)
+
+head(data2, 20)
+tail(data2, 20)
 
 install.packages("usethis")
 

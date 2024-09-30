@@ -77,3 +77,15 @@ merged_data$ISO <- countrycode(merged_data$Country.Name,
                                destination = "iso3c")
 
 
+#initiate and commit the files
+usethis::use_git()
+
+#add personal token
+usethis::create_github_token()
+gitcreds::gitcreds_set()
+
+usethis::use_github()
+
+#usethis::use_git_remote("origin", url = NULL, overwrite = TRUE)
+
+#usethis::use_github()
