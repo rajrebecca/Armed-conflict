@@ -6,6 +6,7 @@
 ### USING CONFLICT DATAFILE ####
 
 library(here)
+library(tidyverse)
 
 # Q2 Derive binary armed conflict variable 
 
