@@ -72,9 +72,13 @@ print(merged_data)
 install.packages(countrycode)
 
 library(countrycode)
+library(tidyverse)
+
 merged_data$ISO <- countrycode(merged_data$Country.Name,
                                origin = "country.name",
                                destination = "iso3c")
+merged_data <- merged_data |>
+  dplyr::select(-Country.Name)
 
 
 #initiate and commit the files

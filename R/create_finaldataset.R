@@ -28,3 +28,5 @@ finaldata <- finaldata %>%
          totdeath = replace_na(totdeath, 0))
 
 write.csv(finaldata, file = here("data", "final_data.csv"), row.names = FALSE)
+
+#usethis::use_git()
