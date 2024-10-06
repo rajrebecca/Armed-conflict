@@ -3,6 +3,7 @@ title: "Week 4- in class activity_EDA"
 name: Rebecca Raj
 format: pdf
 editor: visual
+embed-resources: true
 ---
 
 ```{r}
