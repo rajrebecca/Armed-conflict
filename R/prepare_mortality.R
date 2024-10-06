@@ -69,7 +69,6 @@ print(merged_data)
 ## d.) Use the countrycode() function in the countrycode package to add the ISO-3
 # country code variable to the new data set created in Step c.
 
-install.packages(countrycode)
 
 library(countrycode)
 library(tidyverse)

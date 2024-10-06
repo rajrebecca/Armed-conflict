@@ -2,6 +2,9 @@
 #Author: Rebecca Raj
 #Date: September 23, 2024
 
+library(here)
+library(tidyverse)
+
 covs <- read.csv(here("original", "covariates.csv"), header = TRUE)
 
 covs <- covs %>% rename(Year = year)
@@ -25,7 +28,8 @@ finaldata <- finaldata %>%
   mutate(armconf1 = replace_na(armconf1, 0),
          drought = replace_na(drought, 0),
          earthquake = replace_na(earthquake, 0),
-         totdeath = replace_na(totdeath, 0))
+         totdeath = replace_na(totdeath, 0)) 
+
 
 write.csv(finaldata, file = here("data", "final_data.csv"), row.names = FALSE)
 
