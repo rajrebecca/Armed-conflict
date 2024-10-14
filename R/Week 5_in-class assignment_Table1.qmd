@@ -1,0 +1,161 @@
+---
+title: "Week 5- Table 1 assignment"
+author: "Rebecca Raj"
+format: docx
+editor: visual
+embed-resources: true
+---
+
+```{r}
+
+library(here)
+library(tidyverse)
+library(tableone)
+
+finaldata <- read.csv(here("Version Control/Armed-conflict/data/final_data.csv"), header = TRUE)
+
+
+# Create a new variable indicating if a country has ever had an armed conflict
+finaldata <- finaldata %>%
+  group_by(country_name) %>%
+  mutate(ever_conf = ifelse(any(armconf1 == 1), 1, 0)) %>%
+  ungroup()
+
+# View the final dataset with the new armconf variable
+head(finaldata)
+
+
+
+# Specify the list of covariates to include in the table
+covariates <- c("gdp1000", "popdens", "agedep", "urban", "male_edu", "totdeath", "temp", "rainfall1000", "drought", "earthquake", "Maternal_Mortality", "Infant_Mortality", "Neonatal_Mortality", "Under5_Mortality")
+
+# Create a Table 1 stratified by the 'ever_had_conflict' variable
+table_one <- CreateTableOne(vars = covariates, 
+                            strata = "ever_conf", 
+                            data = finaldata, 
+                            test = FALSE)
+
+# Print the Table 1 to view the results
+print(table_one, quote = FALSE, noSpaces = TRUE)
+
+
+
+
+# Specify the list of covariates to include in the table (excluding country_name)
+covariates <- c("gdp1000", "population_density", "agedep", "male_edu", 
+                "temp", "rainfall1000", "Maternal_Mortality", "Infant_Mortality", "Neonatal_Mortality", "Under5_Mortality")
+
+# Create a Table 1 stratified by the 'ever_had_conflict' variable
+table_one <- CreateTableOne(vars = covariates, 
+                            strata = "ever_had_conflict", 
+                            data = finaldata_aggregated, 
+                            factorVars = c("OECD", "ever_conf"),
+                            test = FALSE)
+
+# Print the Table 1 to view the results
+print(table_one, quote = FALSE, noSpaces = TRUE)
+
+
+library(dplyr)
+
+# Aggregate the data to summarize continuous variables and create binary indicators for categorical variables
+finaldata_agg <- finaldata %>%
+  group_by(country_name) %>%
+  summarise(
+# Continuous variables: summarize using the mean (you can change this to median if preferred)
+    gdp_mean = mean(gdp1000, na.rm = TRUE),
+    popdens_mean = mean(popdens, na.rm = TRUE),
+    agedep_mean = mean(agedep, na.rm = TRUE),
+    male_edu_mean = mean(male_edu, na.rm = TRUE),
+    temp_mean = mean(temp, na.rm = TRUE),
+    rainfall_mean = mean(rainfall1000, na.rm = TRUE),
+    matmor_mean = mean(Maternal_Mortality, na.rm = TRUE),
+    infmor_mean = mean(Infant_Mortality, na.rm = TRUE),
+    neomor_mean = mean(Neonatal_Mortality, na.rm = TRUE),
+    under5mor_mean = mean(Under5_Mortality, na.rm = TRUE),
+    totdeath_mean = mean(totdeath, na.rm = TRUE),
+    
+    # Categorical variables: create binary indicators if the country ever reported 1 in the dataset
+    ever_conf = ifelse(any(armconf1 == 1, na.rm = TRUE), 1, 0),
+    OECD_status = ifelse(any(OECD == 1, na.rm = TRUE), 1, 0),
+    drought1 = ifelse(any(drought == 1, na.rm = TRUE), 1, 0),
+    earthquake1 = ifelse(any(earthquake == 1, na.rm = TRUE), 1,0)
+  ) %>%
+  ungroup()
+
+
+
+# Ensure that each country has a unique row in the dataset
+finaldata_summary <- finaldata %>%
+  group_by(country_name) %>%
+  summarise(
+    gdp1000_mean = mean(gdp1000, na.rm = TRUE),
+    population_density_mean = mean(population_density, na.rm = TRUE),
+    agedep_mean = mean(agedep, na.rm = TRUE),
+    male_edu_mean = mean(male_edu, na.rm = TRUE),
+    temp_mean = mean(temp, na.rm = TRUE),
+    rainfall1000_mean = mean(rainfall1000, na.rm = TRUE),
+    maternal_mortality_mean = mean(maternal_mortality, na.rm = TRUE),
+    infant_mortality_mean = mean(infant_mortality, na.rm = TRUE),
+    neonatal_mortality_mean = mean(neonatal_mortality, na.rm = TRUE),
+    under_5_mortality_mean = mean(under_5_mortality, na.rm = TRUE),
+    ever_had_conflict = ifelse(any(armconfl1 == 1, na.rm = TRUE), 1, 0),
+    OECD_status = ifelse(any(OECD == 1, na.rm = TRUE), 1, 0)
+  ) %>%
+  ungroup()
+
+
+############ TRY PLOTTING ONLY BASELINE DATA (YEAR 2000) FOR COUNTRIES ###########
+
+install.packages("Hmisc")
+library(Hmisc)
+
+install.packages("table1")
+library(table1)
+
+baseline <- finaldata %>%
+  dplyr::filter(Year == 2000)
+baseline$armconf1f <- factor(baseline$armconf1, levels = c(0,1), labels = c("No presence of armed conflict in 2000", "Presence of armed conflict in 2000"))
+baseline$droughtf <- factor(baseline$drought, levels = c(0,1), labels = c("No Drought", "Drought"))
+baseline$earthquakef <- factor(baseline$earthquake, levels = c(0,1), labels = c("No Earthquake", "Earthquake"))
+baseline$OECD <- factor(baseline$OECD, levels = c(0,1), labels = c("No OECD membership", "OECD membership"))
+
+
+label(baseline$gdp1000)       <- "GDP per capita"
+label(baseline$OECD)          <- "OECD member"
+label(baseline$popdens)       <- "Population density"
+label(baseline$urban)         <- "Urban residence"
+label(baseline$agedep)        <- "Age dependency ratio"
+label(baseline$male_edu)      <- "Male education"
+label(baseline$temp)          <- "Mean annual temperature"
+label(baseline$rainfall1000)  <- "Mean annual rain fall"
+label(baseline$earthquakef)   <- "Earthquake"
+label(baseline$earthquake)    <- "Earthquake"
+label(baseline$droughtf)      <- "Drought"
+label(baseline$drought)       <- "Drought"
+label(baseline$armconf1f)     <- "Armed conflict"
+label(baseline$totdeath)      <- "Total number of deaths"
+label(baseline$Maternal_Mortality)        <- "Maternal mortality"
+label(baseline$Infant_Mortality)        <- "Infant mortality"
+label(baseline$Neonatal_Mortality)        <- "Neonatal mortality"
+label(baseline$Under5_Mortality)        <- "Under 5 mortality"
+label(baseline$armconf1f)     <- "Armed conflict"
+
+
+units(baseline$gdp1000)       <- "USD"
+units(baseline$popdens) <- "% of population living in a density of >1,000 people/km^2"
+
+## Create Table 1 #######
+
+cat("Table 1: Summary of Baseline Characteristics for Countries in the Year 2000 by Presence of Armed Conflict Factor\n")
+cat("**Table 1: Summary of Baseline Characteristics for Countries in the Year 2000 by Presence of Armed Conflict Factor**\n\n")
+
+table1(~ gdp1000 + OECD + popdens + urban + agedep + male_edu + temp + rainfall1000 + earthquakef + droughtf| armconf1f, data = baseline,
+        render.continuous = c(.="Median [Min, Max]"),
+       overall=c(left="Total"))
+
+
+
+
+
+```
