@@ -23,9 +23,10 @@ baseline$armconf1f <- factor(baseline$armconf1, levels = c(0,1),
 labels = c("No presence of armed conflict in 2000", "Presence of armed conflict in 2000")) 
 baseline$droughtf <- factor(baseline$drought, levels = c(0,1), labels = c("No Drought", "Drought")) 
 baseline$earthquakef <- factor(baseline$earthquake, levels = c(0,1), labels = c("No Earthquake", "Earthquake")) 
-baseline$OECD <- factor(baseline$OECD, levels = c(0,1), labels = c("No OECD membership", "OECD membership"))
+baseline$OECDf <- factor(baseline$OECD, levels = c(0,1), labels = c("No OECD membership", "OECD membership"))
 
 label(baseline$gdp1000)       <- "GDP per capita"
+label(baseline$OECDf) <- "OECD member" 
 label(baseline$OECD) <- "OECD member" 
 label(baseline$popdens)       <- "Population density"
 label(baseline$urban) <- "Urban residence" 
@@ -48,15 +49,12 @@ label(baseline$armconf1f) <- "Armed conflict"
 units(baseline$gdp1000)       <- "USD"
 units(baseline$popdens) <- "% of population living in a density of >1,000 people/km^2"
 
-{r}
-
 ## Create Table 1
 
-install.packages("kableExtra")
 library(kableExtra)
 
 
-mytable1 <-table1(~ gdp1000 + OECD + popdens + urban + agedep + male_edu + temp + rainfall1000 + earthquakef + droughtf| armconf1f, data = baseline, render.continuous = c(.="Median [Min, Max]"), overall=c(left="Total"))
+mytable1 <-table1(~ gdp1000 + OECDf + popdens + urban + agedep + male_edu + temp + rainfall1000 + earthquakef + droughtf| armconf1f, data = baseline, render.continuous = c(.="Median [Min, Max]"), overall=c(left="Total"))
 
 t1kable(mytable1) %>%
   add_header_above(c(" "=2, "Armed conflict in 2000" = 2))
