@@ -1,69 +1,65 @@
 ---
 title: "Week 5 Activity"
-author: "Rebecca Raj"
+author: Rebecca Raj
 format: pdf
 editor: visual
 embed-resources: true
 ---
 
-```{r} #| echo: FALSE}
+```{r}
 
-############ TRY PLOTTING ONLY BASELINE DATA (YEAR 2000) FOR COUNTRIES ###########
+###### TRY PLOTTING ONLY BASELINE DATA (YEAR 2000) FOR COUNTRIES #############
 
-library(here)
-library(Hmisc)
-library(table1)
+library(here) 
+library(Hmisc) 
+library(table1) 
 library(tidyverse)
 
-finaldata <- read.csv(here("Version Control/Armed-conflict/data/final_data.csv"), header = TRUE)
+finaldata <- read.csv(here("data", "final_data.csv"), header = TRUE)
 
-baseline <- finaldata %>%
-  dplyr::filter(Year == 2000)
+baseline <- finaldata %>% 
+  dplyr::filter(Year == 2000) 
 baseline$armconf1f <- factor(baseline$armconf1, levels = c(0,1), 
-                             labels = c("No presence of armed conflict in 2000", "Presence of armed conflict in 2000"))
-baseline$droughtf <- factor(baseline$drought, levels = c(0,1), 
-                            labels = c("No Drought", "Drought"))
-baseline$earthquakef <- factor(baseline$earthquake, levels = c(0,1), 
-                               labels = c("No Earthquake", "Earthquake"))
-baseline$OECD <- factor(baseline$OECD, levels = c(0,1), 
-                        labels = c("No OECD membership", "OECD membership"))
-
+labels = c("No presence of armed conflict in 2000", "Presence of armed conflict in 2000")) 
+baseline$droughtf <- factor(baseline$drought, levels = c(0,1), labels = c("No Drought", "Drought")) 
+baseline$earthquakef <- factor(baseline$earthquake, levels = c(0,1), labels = c("No Earthquake", "Earthquake")) 
+baseline$OECD <- factor(baseline$OECD, levels = c(0,1), labels = c("No OECD membership", "OECD membership"))
 
 label(baseline$gdp1000)       <- "GDP per capita"
-label(baseline$OECD)          <- "OECD member"
+label(baseline$OECD) <- "OECD member" 
 label(baseline$popdens)       <- "Population density"
-label(baseline$urban)         <- "Urban residence"
+label(baseline$urban) <- "Urban residence" 
 label(baseline$agedep)        <- "Age dependency ratio"
-label(baseline$male_edu)      <- "Male education"
+label(baseline$male_edu) <- "Male education" 
 label(baseline$temp)          <- "Mean annual temperature"
-label(baseline$rainfall1000)  <- "Mean annual rain fall"
+label(baseline$rainfall1000) <- "Mean annual rain fall" 
 label(baseline$earthquakef)   <- "Earthquake"
-label(baseline$earthquake)    <- "Earthquake"
+label(baseline$earthquake) <- "Earthquake" 
 label(baseline$droughtf)      <- "Drought"
-label(baseline$drought)       <- "Drought"
+label(baseline$drought) <- "Drought" 
 label(baseline$armconf1f)     <- "Armed conflict"
-label(baseline$totdeath)      <- "Total number of deaths"
+label(baseline$totdeath) <- "Total number of deaths" 
 label(baseline$Maternal_Mortality)        <- "Maternal mortality"
-label(baseline$Infant_Mortality)        <- "Infant mortality"
+label(baseline$Infant_Mortality) <- "Infant mortality" 
 label(baseline$Neonatal_Mortality)        <- "Neonatal mortality"
-label(baseline$Under5_Mortality)        <- "Under 5 mortality"
-label(baseline$armconf1f)     <- "Armed conflict"
-
+label(baseline$Under5_Mortality) <- "Under 5 mortality" 
+label(baseline$armconf1f) <- "Armed conflict"
 
 units(baseline$gdp1000)       <- "USD"
-units(baseline$popdens) <- "% of population living in 
-a density of >1,000 people/km^2"
+units(baseline$popdens) <- "% of population living in a density of >1,000 people/km^2"
 
-## Create Table 1 #######
+{r}
 
-cat("Table 1: Summary of Baseline Characteristics for Countries in the Year 2000 by Presence of Armed Conflict Factor\n")
+## Create Table 1
 
-table1(~ gdp1000 + OECD + popdens + urban + agedep + male_edu + 
-         temp + rainfall1000 + earthquakef + droughtf| armconf1f, 
-       data = baseline,
-        render.continuous = c(.="Median [Min, Max]"),
-       overall=c(left="Total"))
+install.packages("kableExtra")
+library(kableExtra)
 
+
+mytable1 <-table1(~ gdp1000 + OECD + popdens + urban + agedep + male_edu + temp + rainfall1000 + earthquakef + droughtf| armconf1f, data = baseline, render.continuous = c(.="Median [Min, Max]"), overall=c(left="Total"))
+
+t1kable(mytable1) %>%
+  add_header_above(c(" "=2, "Armed conflict in 2000" = 2))
 
 
 ```
