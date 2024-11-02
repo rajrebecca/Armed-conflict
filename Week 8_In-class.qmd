@@ -115,6 +115,7 @@ finalvars <- list("armconf1" = "Armed conflict",
 ```
 
 ```{r}
+#| echo: false
 screenreg(list(matmormod2, un5mormod2, infmormod2, neomormod2), 
         ci.force = TRUE,
         custom.coef.map = finalvars,
