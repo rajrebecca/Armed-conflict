@@ -34,7 +34,8 @@ fig1 <- forfigure |>
   xlim(c(2000,2017)) +
   # use log 10 sclae for y axis
   scale_y_continuous(trans='log10') + 
-  labs(y = "Maternal mortality (log 10 scale)", x = "Year", color = "Country", title = "Trend in maternal mortality for countries that had an increase from 2000 to 2017") + 
+  labs(y = "Maternal mortality (log 10 scale)", x = "Year", color = "Country", 
+       title = "Trend in maternal mortality for countries that had an increase from 2000 to 2017") + 
   # use black and white theme and increase the size of labels
   theme_bw(base_size = 12)
 

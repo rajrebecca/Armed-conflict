@@ -1,0 +1,126 @@
+---
+title: "Week 8 In-Class Activity"
+author: "Rebecca Raj"
+format: pdf
+editor: visual
+---
+
+```{r}
+#| echo: false
+#| include: false
+
+library(here)
+final_data <- read.csv(here("data", "final_data.csv"), header = TRUE)
+
+
+library(tidyverse)
+
+final_data$pctpopdens <-final_data$popdens / 100
+
+# Fit a panel model with fixed effect for country
+
+matmormod <- lm(Maternal_Mortality ~ -1 + armconf1 + gdp1000 + OECD + pctpopdens + urban + agedep + male_edu + temp + rainfall1000 + earthquake + drought +
+              ISO, data = final_data)
+
+
+
+library(plm)
+
+matmorplm <- plm(Maternal_Mortality ~ armconf1 + gdp1000 + OECD +pctpopdens + urban + agedep + 
+                   male_edu + temp + rainfall1000 + earthquake + drought,
+                 index = c("ISO"), 
+                 model = "within",
+                data = final_data)
+  
+
+# Compare the coefficients from the two models
+#install.packages("texreg")
+library(texreg)
+
+
+screenreg(list(matmormod,matmorplm))
+
+##### Fit models adding year (fixed effects model for country and time) #####
+
+lmmod <- lm(Maternal_Mortality ~ -1 + armconf1 + gdp1000 + OECD + popdens + urban +
+              agedep + male_edu + temp + rainfall1000 + earthquake + drought +
+              ISO + as.factor(Year), 
+            data = final_data)
+
+summary(lmmod)
+
+
+plmmod <- plm(Maternal_Mortality ~ armconf1 + gdp1000 + OECD + popdens + urban + 
+                agedep + male_edu + temp + rainfall1000 + earthquake + drought,
+              index = c("ISO", "Year"),
+              effect = "twoways",
+              model = "within",
+              data = final_data)
+
+summary(plmmod)
+
+# Compare the coefficients from the two models
+screenreg(list(lmmod,plmmod))
+
+
+# Fit models using the the other mortality covariates as main predictors
+
+preds <- as.formula(" ~ armconf1 + gdp1000 + OECD + popdens + urban + 
+                  agedep + male_edu + temp + rainfall1000 + earthquake + drought + 
+                  ISO + as.factor(Year)")
+
+matmormod <- lm(update.formula(preds, Maternal_Mortality ~ .), data = final_data)
+un5mormod <- lm(update.formula(preds, Under5_Mortality ~ .), data = final_data)
+infmormod <- lm(update.formula(preds, Infant_Mortality ~ .), data = final_data)
+neomormod <- lm(update.formula(preds, Neonatal_Mortality ~ .), data = final_data)
+
+
+# Log transform the GDP variable
+final_data$log_gdp1000 <- log(final_data$gdp1000)
+
+# Fit new plm models with the new GDP variable
+
+preds2 <- as.formula(" ~ armconf1 + log_gdp1000 + OECD + popdens + urban + 
+                  agedep + male_edu + temp + rainfall1000 + earthquake + drought")
+
+matmormod2 <- plm(update.formula(preds2, Maternal_Mortality ~ .),index = c("ISO", "Year"), effect = "twoways",
+                 model = "within", data = final_data)
+
+un5mormod2 <- plm(update.formula(preds2, Under5_Mortality ~ .), index = c("ISO", "Year"), effect = "twoways",
+                 model = "within", data = final_data)
+
+infmormod2 <- plm(update.formula(preds2, Infant_Mortality ~ .), index = c("ISO", "Year"), effect = "twoways",
+                 model = "within", data = final_data)
+
+neomormod2 <- plm(update.formula(preds2, Neonatal_Mortality ~ .), index = c("ISO", "Year"), effect = "twoways",
+                 model = "within", data = final_data)
+
+
+screenreg(list(matmormod2, un5mormod2,infmormod2, neomormod2), ci.force = TRUE,)
+          
+
+          
+finalvars <- list("armconf1" = "Armed conflict",
+                 "loggdp" = "log(GDP)",
+                 "OECD" = "OECD status",
+                 "popdens" = "Population density",
+                 "urban" = "Urban",
+                 "agedep" = "Age dependency",
+                 "male_edu" = "Male education",
+                 "temp" = "Average temperature",
+                 "rainfall" = "Average rainfall",
+                 "earthquake" = "Earthquake",
+                 "drought" = "Drought")
+
+```
+
+```{r}
+screenreg(list(matmormod2, un5mormod2, infmormod2, neomormod2), 
+        ci.force = TRUE,
+        custom.coef.map = finalvars,
+        custom.model.names = c("Maternal mortality", "Under-5 mortality",
+                               "Infant mortality", "Neonatal mortality"))
+```
+
+```         
+```
