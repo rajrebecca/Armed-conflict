@@ -1,0 +1,127 @@
+---
+title: "Week 9 In-Class Activity"
+author: "Rebecca Raj"
+format: pdf
+editor: visual
+---
+
+```{r}
+
+library(tidyverse)
+library(here)
+library (plm)
+library(texreg)
+library(mice)
+
+
+
+finaldata <- read.csv(here("data", "final_data.csv"), header = TRUE)
+
+finaldata$log_gdp1000 <- log(finaldata$gdp1000)
+
+finaldata <- finaldata |>
+  mutate(pctpopdens = popdens/100) |>
+  select(-popdens, -gdp1000)
+
+head(finaldata)
+
+# Convert ISO to a numeric variable and then remove the country_name and ISO character columns from dataset
+
+midata <- finaldata |>
+  mutate(ISOnum = as.numeric(as.factor(finaldata$ISO))) |>
+  select(-country_name, -ISO)
+
+# Dry run to get meth and pred
+mice0  <- mice(midata, seed = 100, m = 5, maxit = 0, print = F)
+
+# Edit meth and pred
+
+meth <-mice0$method
+meth[c("urban", "male_edu", "temp", "rainfall1000", "Maternal_Mortality", "Infant_Mortality", "Neonatal_Mortality", "Under5_Mortality", "log_gdp1000", "pctpopdens")] <- "2l.lmer"
+
+
+pred <- mice0$predictorMatrix
+
+
+pred[c("urban", "male_edu", "temp", "rainfall1000", "Maternal_Mortality", "Infant_Mortality", "Neonatal_Mortality", "Under5_Mortality", "log_gdp1000", "pctpopdens"), "ISOnum"] <- -2
+
+
+# Perform multiple imputation with 10 iterations 
+
+mice.multi.out  <- mice(midata, seed = 100, m = 10, maxit = 20,
+                        method = meth,
+                        predictorMatrix = pred)
+
+# Check for convergence
+
+plot(mice.multi.out)
+
+
+# Fit 4 models
+
+matmormod <- with(mice.multi.out, lm(Maternal_Mortality ~ -1 + armconf1 + log_gdp1000 + OECD + pctpopdens + urban + agedep + male_edu + temp + rainfall1000 + earthquake + drought + as.factor(ISOnum) + as.factor(Year)))
+
+un5mormod <- with(mice.multi.out, lm(Under5_Mortality ~ -1 + armconf1 + log_gdp1000 + OECD + pctpopdens + urban + agedep + male_edu + temp + rainfall1000 + earthquake + drought + as.factor(ISOnum) + as.factor(Year)))
+
+infmormod <- with(mice.multi.out, lm(Infant_Mortality ~ -1 + armconf1 + log_gdp1000 + OECD + pctpopdens + urban + agedep + male_edu + temp + rainfall1000 + earthquake + drought + as.factor(ISOnum) + as.factor(Year)))
+
+neomormod <- with(mice.multi.out, lm(Neonatal_Mortality ~ -1 + armconf1 + log_gdp1000 + OECD + pctpopdens + urban + agedep + male_edu + temp + rainfall1000 + earthquake + drought + as.factor(ISOnum) + as.factor(Year)))
+
+# Get summary estimates and standard errors from the models
+
+# Pool and summarize each model's results
+matmor_results <- pool(matmormod)
+un5mor_results <- pool(un5mormod)
+infmor_results <- pool(infmormod)
+neomor_results <- pool(neomormod)
+
+# Confirm n is the same across all 4 models
+
+summary(matmor_results)
+summary(un5mor_results)
+summary(infmor_results)
+summary(neomor_results)
+
+# Fit models without using the imputed data - complete case analysis
+
+preds <- as.formula(" ~ -1 + armconf1 + log_gdp1000 + OECD + pctpopdens + urban + 
+                  agedep + male_edu + temp + rainfall1000 + earthquake + drought + 
+                  as.factor(ISO) + as.factor(Year)")
+
+matmormod1 <- lm(update.formula(preds, Maternal_Mortality ~ .), data = finaldata)
+un5mormod1 <- lm(update.formula(preds, Under5_Mortality ~ .), data = finaldata)
+infmormod1 <- lm(update.formula(preds, Infant_Mortality ~ .), data = finaldata)
+neomormod1 <- lm(update.formula(preds, Neonatal_Mortality ~ .), data = finaldata)
+
+tosave <- list(matmor_results, un5mor_results, infmor_results, neomor_results, 
+               matmormod1, un5mormod1, infmormod1, neomormod1)
+
+# Specify the variables you want to keep in the final table
+
+keepvars <- list("armconf1" = "Armed conflict",
+                 "log_gdp1000" = "log(GDP)",
+                 "OECD" = "OECD",
+                 "pctpopdens" = "Population density",
+                 "urban" = "Urban",
+                 "agedep" = "Age dependency",
+                 "male_edu" = "Male education",
+                 "temp" = "Average temperature",
+                 "rainfall" = "Average rainfall",
+                 "earthquake" = "Earthquake",
+                 "drought" = "Drought")
+
+
+# Get a table of coefficients with comparing the complete case analysis and the MI based analysis
+
+screenreg(tosave,
+  ci.force = TRUE,
+  custom.coef.map = keepvars,
+  custom.model.names = c("Mat CC", "Mat MI",
+                         "Und5 CC", "Und5 MI",
+                         "Inf CC", "Inf MI",
+                         "Neo CC", "Neo MI")
+)
+
+
+
+```
