@@ -1,0 +1,52 @@
+---
+title: "Week 9_Activity_MI vs. CC analysis"
+format: pdf
+embed-resources: true
+editor: source
+---
+
+```{r}
+
+#| label: load-packages
+#| include: false
+
+library(here)
+library(tidyverse)
+library(kableExtra)
+library(texreg)
+library(plm)
+
+
+#| output: asis
+
+load(here("Output", "MI_output.Rdata"))
+keepvars <- list("armconf1" = "Armed conflict",
+                 "log_gdp" = "log(GDP)",
+                 "OECD" = "OECD",
+                 "pctpopdens" = "Population density",
+                 "urban" = "Urban",
+                 "agedep" = "Age dependency",
+                 "male_edu" = "Male education",
+                 "temp" = "Average temperature",
+                 "rainfall" = "Average rainfall",
+                 "earthquake" = "Earthquake",
+                 "drought" = "Drought")
+
+
+```
+
+```{r}
+#| echo: false
+screenreg(list(matmormod1, matmor_results, un5mormod1, un5mor_results, infmormod1, infmor_results, neomormod1, neomor_results),
+  ci.force = TRUE,
+  custom.coef.map = keepvars,
+  custom.model.names = c("Mat CC", "Mat MI",
+                         "Und5 CC", "Und5 MI",
+                         "Inf CC", "Inf MI",
+                         "Neo CC", "Neo MI")
+)
+
+```
+
+```{}
+```
