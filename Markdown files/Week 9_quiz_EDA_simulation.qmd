@@ -1,0 +1,246 @@
+---
+title: "Week 4- in class activity_EDA"
+name: Rebecca Raj
+format: pdf
+editor: visual
+embed-resources: true
+---
+
+```{r}
+
+library(here)
+library(tidyverse)
+
+
+finaldata <- read.csv(here("data", "final_data.csv"), header = TRUE)
+
+# Filter the dataset for the year 2017
+data_2017 <- finaldata[finaldata$Year == 2017, ]
+
+# Count the number of missing values in the Maternal_Mortality column
+missing_mat_mor <- sum(is.na(data_2017$Maternal_Mortality))
+
+# Display the result
+missing_mat_mor
+
+# Filter the dataset for 2017 and exclude rows with missing Maternal_Mortality
+data_2017 <- finaldata[finaldata$Year == 2017 & !is.na(finaldata$Maternal_Mortality), ]
+
+# Count countries exposed to armed conflict (assuming 'armconf1' indicates exposure)
+exposed_to_conflict <- sum(data_2017$armconf1 == 1, na.rm = TRUE)
+
+# Count countries not exposed to armed conflict
+not_exposed_to_conflict <- sum(data_2017$armconf1 == 0, na.rm = TRUE)
+
+# Display results
+cat("In 2017, there were", exposed_to_conflict, "countries exposed to armed conflict, and", 
+    not_exposed_to_conflict, "countries not exposed to armed conflict, excluding those with missing maternal mortality data.\n")
+
+# Filter the dataset for 2017, exclude rows with missing Maternal_Mortality, and select countries exposed to armed conflict
+conflict_data_2017 <- finaldata[finaldata$Year == 2017 & 
+                                !is.na(finaldata$Maternal_Mortality) & 
+                                finaldata$armconf1 == 1, ]
+
+# Calculate the median of Maternal_Mortality
+median_maternal_mortality <- median(conflict_data_2017$Maternal_Mortality, na.rm = TRUE)
+
+# Display the result
+cat("The sample median of the 2017 maternal mortality rate (per 100,000 live births) in countries exposed to armed conflict is:", data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAAbElEQVR4Xs2RQQrAMAgEfZgf7W9LAguybljJpR3wEse5JOL3ZObDb4x1loDhHbBOFU6i2Ddnw2KNiXcdAXygJlwE8OFVBHDgKrLgSInN4WMe9iXiqIVsTMjH7z/GhNTEibOxQswcYIWYOR/zAjBJfiXh3jZ6AAAAAElFTkSuQmCC
+    median_maternal_mortality, "\n")
+
+
+
+
+#######################################################
+
+names(finaldata)
+
+finaldata %>%
+  dplyr ::filter(country_name == "Canada")
+
+
+finaldata %>%
+  dplyr ::filter(country_name == "Ecuador")
+
+
+
+####### EXPLORATORY DATA ANALYSIS #######
+
+
+finaldata |>
+  head()
+
+finaldata |>
+  head()
+
+finaldata |>
+  slice_sample(n = 10)
+
+# Check the structure of the data #
+str(finaldata)
+
+# Get summary statistics for the data #
+summary(finaldata)
+
+# 20 missing obs for popdens, urban, male_edu, temp, rainfall1000, infant_mortality
+# neonatal_mortality, under5_mortatlity
+
+# 426 missing obs for maternal_mortality and 62 missing obs for gdp1000
+
+# So, we have data that is MNAR 
+
+missing_data <- finaldata[!complete.cases(finaldata), ]
+
+
+# View countries with the 20 missing obs
+
+missing_countries <- finaldata[is.na(finaldata$rainfall) | 
+                          is.na(finaldata$male_edu) | 
+                          is.na(finaldata$popdens) | 
+                          is.na(finaldata$urban) | 
+                          is.na(finaldata$temp) | 
+                          is.na(finaldata$infant_mortality) | 
+                          is.na(finaldata$neonatal_mortality) | 
+                          is.na(finaldata$under5_mortality), ]
+
+# View the countries with missing data
+missing_countries$country_name
+
+
+
+# All 20 missings obs for popdens, urban, male_edu, temp and rainfall1000 are from
+# Cote d'Ivoire.
+
+# All 20 missing obs for infant, neonatal and under5 mortality are from Puerto Rico
+
+# No obvious pattern for the missing obs for maternal mortality
+
+# All obs for gdp1000 are missing for South Sudan, North Korea, Eritrea, Venezuela. For Somalia, Afghanistan and Sao Tome and Principe gdp values were missing except for the years 2018 and 2019 so this is MNAR. 
+
+
+### EXPLORE DISTRIBUTION AND PROPERTIES OF VARIABLES #####
+
+
+# Histogram for GDP
+hist(finaldata$gdp1000, main = "Distribution of GDP", xlab = "GDP (in thousands)", col = "lightblue")
+
+## Most values for GDP1000 fall between 0-10 (GDP in thousands) ##
+
+
+# Density plot for Population Density
+plot(density(finaldata$popdens, na.rm = TRUE), main = "Density Plot for Population Density", xlab = "Population Density", col = "red")
+
+## Popdens values between 5 and 45 per 100,000 are more likely to occur or occur more frequently than other values ##
+
+
+# Create a contingency table of OECD membership by country
+table(finaldata$country_name, finaldata$OECD)
+
+# Only Lithuania, Latvia, Estonia and Chile changed OECD membership status through the observation period in this dataset #
+
+# Filter the data for Latvia, Lithuania, and Chile
+subset_country <- subset(finaldata, country_name %in% c("Latvia", "Lithuania", "Chile"))
+
+table(subset_country$country_name, subset_country$OECD, subset_country$Year)
+
+#Chile became an OECD country in 2011, Latvia in 2017 and Lithuania in 2019.
+
+
+### DENSITY PLOTS FOR CATEGORICAL VARIABLES ###
+
+# Plot for region by year
+
+library(ggplot2)
+
+ggplot(finaldata, aes(x = as.factor(Year), fill = region)) + 
+  geom_bar(position = "dodge") +
+  labs(title = "Region Distribution by Year", 
+       x = "Year", 
+       y = "Frequency", 
+       fill = "Region") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+## Sub-Saharan Africa and Latin American & the Caribbean were the regions that had the highest frequency reported in every year ##
+
+### CORRELATION MATRIX FOR CONTINUOUS VARIABLES ###
+
+# Compute correlation matrix
+continuous_vars <- finaldata[, c("gdp1000", "popdens", "agedep", "male_edu", "temp", "rainfall1000", "totdeath", "Maternal_Mortality", "Infant_Mortality", "Neonatal_Mortality", "Under5_Mortality")]
+cor_matrix <- cor(continuous_vars, use = "complete.obs")
+
+# Visualize the correlation matrix
+library(corrplot)
+corrplot(cor_matrix, method = "color", type = "upper", tl.col = "black", tl.srt = 45)
+
+
+## All the mortality variables are correlated with each other, suggesting that countries with higher maternal mortality also seem to have higher infant, neonatal and under-5 mortality rates. There is also a moderate positive correlation between the age dependency ratio and mortality rates.
+
+## GDP seems to be negatively correlated with maternal, infant and neonatal mortality, suggesting that countries with higher GDP tend to have lower mortality rates. Interestingly, male education is also negatively correlated with the mortality variables, suggesting that higher levels of male education are associated with lower mortality rates.
+
+
+### SUMMARIZE DATA BY GROUP ###
+# Summarize data by region #
+
+library(dplyr)
+finaldata %>%
+  group_by(region) %>%
+  summarise(mean_gdp = mean(gdp1000, na.rm = TRUE),
+            mean_popdens = mean(popdens, na.rm = TRUE))
+
+
+### CHECK OUTLIERS ###
+
+# Boxplot for GDP
+
+library(ggplot2)
+
+ggplot (finaldata, aes(y = gdp1000)) + 
+  geom_boxplot(fill = "orange") + 
+  labs(title = "Boxplot of GDP", y = "GDP (in thousands)") + 
+  theme_minimal()
+
+ # the 62  missing values for gdp1000 were removed from this plot
+
+
+
+# Plot and look at infant mortality by armed conflict status #
+
+finaldata |>
+  ggplot(aes(x = Year, y = Infant_Mortality, group = region)) +
+  geom_line(aes(color = as.factor(armconf1)), alpha = 0.5) +
+  xlim(c(2000,2019)) +
+  scale_y_continuous(trans='log10') + 
+  labs(y = "Infant mortality", x = "Year", color = "Armed conflict") + 
+  theme_bw()
+
+# Plot and look at maternal mortality by armed conflict status #
+
+finaldata |>
+  ggplot(aes(x = Year, y = Maternal_Mortality, group = region)) +
+  geom_line(aes(color = as.factor(armconf1)), alpha = 0.5) +
+  xlim(c(2000,2019)) +
+  scale_y_continuous(trans='log10') + 
+  labs(y = "Maternal Mortality", x = "Year", color = "Armed conflict") + 
+  theme_bw()
+
+# Plot and look at neonetal mortality by armed conflict status #
+
+finaldata |>
+  ggplot(aes(x = Year, y = Neonatal_Mortality, group = region)) +
+  geom_line(aes(color = as.factor(armconf1)), alpha = 0.5) +
+  xlim(c(2000,2019)) +
+  scale_y_continuous(trans='log10') + 
+  labs(y = "Neonatal mortality", x = "Year", color = "Armed conflict") + 
+  theme_bw()
+ 
+
+# Plot and look at under 5 mortality by armed conflict status #
+
+finaldata |>
+  ggplot(aes(x = Year, y = Under5_Mortality, group = region)) +
+  geom_line(aes(color = as.factor(armconf1)), alpha = 0.5) +
+  xlim(c(2000,2019)) +
+  scale_y_continuous(trans='log10') + 
+  labs(y = "Under 5 mortality", x = "Year", color = "Armed conflict") + 
+  theme_bw()
+```
